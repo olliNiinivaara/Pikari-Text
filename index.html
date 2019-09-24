@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en"; style="position: relative; overflow: hidden">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Pikari - Text</title>
+  <noscript>Pikari needs Javascript in order to work.</noscript>
+  <style>
+    body * { box-sizing: border-box; }
+    div { margin: 1em; display: table-caption}
+    textarea { height: 30vh; width: 80vw; }
+  </style>
+</head>
+<body id="body" style="margin: 1em; height: 100vh; background-color: #FAFAFA; font-family: system-ui; font-weight: lighter;">
+<p id="user"></p>
+<div>
+  <p>Personal text</p>
+  <button id="psave" disabled>Save</button><button id="pcancel" disabled>Cancel</button><textarea id="personal"></textarea>
+</div>
+<div>
+  <p>Shared text</p>
+  <button id="sedit">Edit</button><button id="ssave" disabled>Save</button><button id ="scancel" disabled>Cancel</button>
+  <p id="editor"></p>
+  <textarea id="shared" disabled></textarea>
+</div>
+</body>
+<script src="/pikari.js "></script>
+<script>
+  window.e = function(id) { return document.getElementById(id) }  
+  let toggle = function(enabled, ...elements) { elements.forEach(el => { e(el).disabled = !enabled }) }
+     
+
+  //personal-----
+
+  const p = e("personal")
+  
+  p.addEventListener('input', function() { toggle(false, "sedit"); toggle(true, "psave", "pcancel") })
+
+  e("psave").addEventListener('click', async function() {
+    if (!await Pikari.setLocks(Pikari.user)) return
+    Pikari.data.set(" <🏆> "+Pikari.user, p.value)
+    Pikari.commit()
+    toggle(true, "sedit"); toggle(false, "psave", "pcancel")
+  })
+
+  e("pcancel").addEventListener('click', function() {
+    p.value = Pikari.data.get(" <🏆> "+Pikari.user)
+    toggle(true, "sedit"); toggle(false, "psave", "pcancel")
+  })
+
+
+  //shared-----
+
+  const s = e("shared")
+
+  Pikari.addLockListener(function() {
+    if (Pikari.locks["shared"]) {
+      e("editor").innerHTML = Pikari.locks["shared"].lockedby + " is editing..."
+      toggle(false, "sedit")
+      if (Pikari.mylocks.includes("shared")) {
+        toggle(false, "personal")
+        toggle(true, "shared", "ssave", "scancel")
+      }
+    }
+    else {
+      e("editor").innerHTML = ""
+      if (Pikari.mylocks.length == 0) {
+        toggle(true, "sedit", "personal")
+        toggle(false, "shared", "ssave", "scancel")
+      }
+    }
+  })
+  
+  e("sedit").addEventListener('click', function() { Pikari.setLocks("shared") })
+
+  e("ssave").addEventListener('click', function() {
+    Pikari.data.set("shared", s.value)
+    Pikari.commit()
+  })
+
+  e("scancel").addEventListener('click', function() { Pikari.rollback() })
+
+
+  //-----
+
+  Pikari.addChangeListener(function(changetype) {
+    if (changetype === Pikari.EVENT.START) e("user").innerHTML = Pikari.user
+    p.value = Pikari.getOrDefault(" <🏆> "+Pikari.user, "") // we add  <🏆> to user name to prevent a clash if someone's name is "shared"...
+    s.value = Pikari.getOrDefault("shared", "")
+  })
+
+  Pikari.start(prompt(document.title+"\nUser name"))
+
+</script>
+</html>
