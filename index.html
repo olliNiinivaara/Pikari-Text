@@ -25,7 +25,7 @@
   <textarea id="shared" disabled></textarea>
 </div>
 </body>
-<script src="./pikari.js"></script>
+<script src="/pikari.js"></script>
 <script>
   window.e = function(id) { return document.getElementById(id) }  
   let toggle = function(enabled, ...elements) { elements.forEach(el => { e(el).disabled = !enabled }) }
@@ -90,7 +90,7 @@
     s.value = Pikari.getOrDefault("shared", "")
   })
 
-  Pikari.start(prompt(document.title+"\nUser name"))
+  Pikari.start("prompt")
 
 </script>
 </html>
